@@ -8,6 +8,7 @@ namespace GrainInterfaces
 {
     public interface IHello : Orleans.IGrainWithIntegerKey
     {
-        Task<string> SayHello(string msg);
+        Task<string> CallDirect(string databaseName);
+        Task<string> CallWrapped(string databaseName);
     }
 }

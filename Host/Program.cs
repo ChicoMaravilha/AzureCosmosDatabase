@@ -36,10 +36,15 @@ namespace Host
             var config = Orleans.Runtime.Configuration.ClientConfiguration.LocalhostSilo(30000);
             GrainClient.Initialize(config);
 
-            var friend = GrainClient.GrainFactory.GetGrain<IHello>(0);
-            var result = friend.SayHello("Goodbye").Result;
-            Console.WriteLine(result);
+            var grain = GrainClient.GrainFactory.GetGrain<IHello>(0);
 
+            Console.WriteLine("Calling grain wrapped");
+            var result = grain.CallWrapped("MyDB").Result;
+            Console.WriteLine($"Grain wrapped call returned: {result}");
+
+            Console.WriteLine("Calling grain direct");
+            result = grain.CallDirect("MyDB").Result;
+            Console.WriteLine($"Grain direct call returned: {result}");
         }
 
         static void InitSilo(string[] args)

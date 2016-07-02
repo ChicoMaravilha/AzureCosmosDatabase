@@ -1,17 +1,46 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using GrainInterfaces;
+using Microsoft.Azure.Documents.Client;
 
 namespace Grains
 {
     class HelloGrain : Orleans.Grain, IHello
     {
-        public Task<string> SayHello(string msg)
+        private readonly Uri Endpoint = new Uri("https://<account>.azure.com:443/");
+        private const string Key = "<key==>";
+
+        public Task<string> CallDirect(string databaseName)
         {
-            return Task.FromResult(string.Format("You said {0}, I say: Hello!", msg));
+            var client = new DocumentClient(Endpoint, Key);
+
+            Console.WriteLine("Calling DocumentDB client");
+
+            var database = client.CreateDatabaseQuery()
+                    .Where(d => d.Id == databaseName)
+                    .AsEnumerable()
+                    .FirstOrDefault();
+
+            Console.WriteLine("DocumentDB client returned");
+
+            return Task.FromResult(database?.Id ?? $"Database {databaseName} doesn't exist");
+        }
+
+        public async Task<string> CallWrapped(string databaseName)
+        {
+            var client = new DocumentClient(Endpoint, Key);
+
+            Console.WriteLine("Calling DocumentDB client");
+
+            var database = await Task.Run(() => client.CreateDatabaseQuery()
+                    .Where(d => d.Id == databaseName)
+                    .AsEnumerable()
+                    .FirstOrDefault()).ConfigureAwait(false);
+
+            Console.WriteLine("DocumentDB client returned");
+
+            return database?.Id ?? $"Database {databaseName} doesn't exist";
         }
     }
 }
